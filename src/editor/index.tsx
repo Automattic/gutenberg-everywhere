@@ -4,10 +4,11 @@
 
 import { MediaUpload } from '@wordpress/media-utils';
 import { mediaUpload } from '@wordpress/editor';
-import { render } from '@wordpress/element';
+import { createRoot, useEffect } from '@wordpress/element';
 import IsolatedBlockEditor, { EditorLoaded } from '@automattic/isolated-block-editor';
 import { addFilter } from '@wordpress/hooks';
 import { __ } from '@wordpress/i18n';
+import { getBlockTypes, unregisterBlockType } from '@wordpress/blocks';
 
 /**
  * Local dependencies
@@ -35,7 +36,7 @@ function setLoaded( container ) {
 }
 
 function createContainer( textarea, existingContainer ) {
-	if ( existingContainer && !existingContainer.contains( textarea ) ) {
+	if ( existingContainer && ! existingContainer.contains( textarea ) ) {
 		return existingContainer;
 	}
 
@@ -47,29 +48,45 @@ function createContainer( textarea, existingContainer ) {
 	return container;
 }
 
+function RemoveBlockTypes() {
+	useEffect( () => {
+		const blocks = getBlockTypes()
+			.filter( ( block ) => wpBlocksEverywhere.iso.blocks.allowBlocks.indexOf( block.name ) === -1 )
+			.forEach( ( block ) => {
+				unregisterBlockType( block.name );
+			} );
+	}, [] );
+
+	return null;
+}
+
 function createEditorContainer( container, textarea, settings ) {
+	const root = createRoot( container );
+
 	if ( settings?.editor?.hasUploadPermissions ) {
 		// Connect the media uploader if it's enabled
 		settings.editor.mediaUpload = mediaUpload;
 		addFilter( 'editor.MediaUpload', 'blocks-everywhere/media-upload', () => MediaUpload );
 	} else {
-		settings.editor.mediaUpload = ( { onError } ) => {
-			onError( __( 'File uploading is disabled. Please use an image block and an external image URL.', 'blocks-everywhere' ) );
-		};
+		settings.editor.mediaUpload = null;
 	}
 
-	render(
+	root.render(
 		<IsolatedBlockEditor
 			settings={ settings }
 			onSaveContent={ ( content ) => saveBlocks( textarea, content ) }
 			onLoad={ ( parser ) => ( textarea && textarea.nodeName === 'TEXTAREA' ? parser( textarea.value ) : [] ) }
 			onError={ () => document.location.reload() }
+			__experimentalOnInput={ ( newBlocks ) => settings?.iso.__experimentalOnInput?.( newBlocks ) }
+			__experimentalOnChange={ ( newBlocks ) => settings?.iso.__experimentalOnChange?.( newBlocks ) }
+			__experimentalOnSelection={ ( selection ) => settings?.iso.__experimentalOnSelection?.( selection ) }
+			className={ settings?.iso?.className }
 		>
 			<EditorLoaded onLoaded={ () => setLoaded( container ) } />
 
 			{ settings.editorType === 'buddypress' && <BuddyPress textarea={ textarea } /> }
-		</IsolatedBlockEditor>,
-		container
+			<RemoveBlockTypes />
+		</IsolatedBlockEditor>
 	);
 }
 

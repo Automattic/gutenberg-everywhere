@@ -92,16 +92,6 @@ class Editor {
 		// Restrict tinymce buttons
 		add_filter( 'tiny_mce_before_init', [ $this, 'tiny_mce_before_init' ] );
 
-		// Gutenberg scripts
-		wp_enqueue_script( 'wp-block-library' );
-		wp_enqueue_script( 'wp-format-library' );
-		wp_enqueue_script( 'wp-editor' );
-		wp_enqueue_script( 'wp-plugins' );
-
-		// Gutenberg styles
-		wp_enqueue_style( 'wp-edit-post' );
-		wp_enqueue_style( 'wp-format-library' );
-
 		// Keep Jetpack out of things
 		add_filter(
 			'jetpack_blocks_variation',
@@ -110,17 +100,29 @@ class Editor {
 			}
 		);
 
-		wp_tinymce_inline_scripts();
-		wp_enqueue_editor();
+		// Only call the editor assets if we are not dynamically loading.
+		if ( ! defined( '__EXPERIMENTAL_DYNAMIC_LOAD' ) ) {
+			wp_tinymce_inline_scripts();
 
-		do_action( 'enqueue_block_editor_assets' );
+			wp_enqueue_editor();
 
-		add_action( 'wp_print_footer_scripts', array( '_WP_Editors', 'print_default_editor_scripts' ), 45 );
+			do_action( 'enqueue_block_editor_assets' );
+
+			add_action( 'wp_print_footer_scripts', array( '_WP_Editors', 'print_default_editor_scripts' ), 45 );
+		}
+
+		// Optionally skip loading the editor styles.
+		$should_inline_styles = apply_filters( 'blocks_everywhere_should_enqueue_styles', true );
+
+		if ( $should_inline_styles ) {
+			wp_enqueue_style( 'wp-edit-post' );
+			wp_enqueue_style( 'wp-format-library' );
+
+			set_current_screen( 'front' );
+			wp_styles()->done = array( 'wp-reset-editor-styles' );
+		}
 
 		$this->setup_rest_api();
-
-		set_current_screen( 'front' );
-		wp_styles()->done = array( 'wp-reset-editor-styles' );
 
 		$categories = wp_json_encode( get_block_categories( $post ) );
 
@@ -216,6 +218,8 @@ class Editor {
 			'richEditingEnabled'                   => user_can_richedit(),
 			'postLock'                             => false,
 			'supportsLayout'                       => $supports_layout,
+			'hasFixedToolbar'                      => true,
+			'hasInlineToolbar'                     => false,
 			'__experimentalBlockPatterns'          => [],
 			'__experimentalBlockPatternCategories' => [],
 			'supportsTemplateMode'                 => current_theme_supports( 'block-templates' ),

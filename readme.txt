@@ -2,8 +2,8 @@
 Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
 Requires at least: 6.2
-Tested up to: 6.2
-Stable tag: 1.18.0
+Tested up to: 6.3.2
+Stable tag: 1.23.0
 Requires PHP: 5.6
 License: GPLv3
 
@@ -36,7 +36,7 @@ The loading of Gutenberg will also increase the page size of any page it is load
 
 This doesn't yet work on block-based themes - it must be a 'classic' theme.
 
-You should use the latest version of the Gutenberg plugin.
+You must use the specific version of Gutenberg listed in the changelog.
 
 == Usage ==
 
@@ -76,6 +76,10 @@ Some settings are available through the settings object, which is filterable wit
 `patchEmoji` - set to `true` to stop twemoji from affecting the editor
 `iso.allowEmbeds` - List of enabled embeds
 `iso.blocks.allowBlocks` - List of enabled blocks
+`iso.className` - String of classes to be assigned to the editor.
+`iso.__experimentalOnChange` - An optional callback that is triggered when the blocks are changed.
+`iso.__experimentalOnInput` - An optional callback that is triggered when text is input.
+`iso.__experimentalOnSelection` - An optional callback when a block is selected.
 
 == Theme compatibility ==
 
@@ -147,6 +151,28 @@ The plugin is simple to install:
 2. Gutenberg when editing a comment
 
 == Changelog ==
+
+= 1.23.0 =
+* Update for Gutenberg 17.9
+* Toolbars now merged into a single toolbar
+
+= 1.22.0 =
+* Update for Gutenberg 16.9. Now only works with this specific version.
+
+= 1.21.0 =
+* Disable block renaming
+* Update for latest Gutenberg (16.7.1+)
+
+= 1.20.1 =
+* Fix toolbar not being full width in 16.2.1
+
+= 1.20.0 =
+* Now compatible with Gutenberg 16
+
+= 1.19.0 =
+* Fix link apply button having wrong style
+* Fix disabled upload permissions from not working
+* Fix React 17/18 warning
 
 = 1.18.0 =
 * Compatibility with Gutenberg 15.5.0+
